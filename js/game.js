@@ -7,6 +7,7 @@
   const ATTACK_DELAY_MS = 3000;
 
   const state = {
+    window.gameState = state;
     startedAt: performance.now(),
     power: 100,
     leftDoor: false,
