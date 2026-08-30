@@ -7,7 +7,6 @@
   const ATTACK_DELAY_MS = 3000;
 
   const state = {
-    window.gameState = state;
     startedAt: performance.now(),
     power: 100,
     leftDoor: false,
@@ -20,6 +19,7 @@
     leftEnemy: 0,
     rightEnemy: 0
   };
+  window.gameState = state;
 
   let leftAttackTimer = null;
   let rightAttackTimer = null;
