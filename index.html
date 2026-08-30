@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meme Valley - Night 1</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main id="game">
+    <section id="office">
+      <div id="left-hall" class="hall">
+        <span>LEFT HALL</span>
+        <div id="left-threat" class="threat hidden">●</div>
+      </div>
+
+      <div class="office-center">
+        <h1>MEME VALLEY</h1>
+        <p class="subtitle">NIGHT SECURITY TERMINAL</p>
+        <div id="office-message">12 AM — Shift started.</div>
+      </div>
+
+      <div id="right-hall" class="hall">
+        <span>RIGHT HALL</span>
+        <div id="right-threat" class="threat hidden">●</div>
+      </div>
+    </section>
+
+    <section id="controls">
+      <button id="left-door">LEFT DOOR: OPEN</button>
+      <button id="camera-toggle">OPEN CAMERAS</button>
+      <button id="right-door">RIGHT DOOR: OPEN</button>
+    </section>
+
+    <section id="hud">
+      <span id="time">12 AM</span>
+      <span id="power">POWER 100%</span>
+      <span id="usage">USAGE ▮</span>
+    </section>
+
+    <section id="camera-panel" class="hidden">
+      <div id="camera-feed">
+        <div class="static"></div>
+        <h2 id="camera-name">CAM 1 — STORAGE</h2>
+        <p id="camera-description">Nothing unusual.</p>
+      </div>
+
+      <div id="camera-buttons">
+        <button data-camera="0">CAM 1</button>
+        <button data-camera="1">CAM 2</button>
+        <button data-camera="2">CAM 3</button>
+        <button data-camera="3">CAM 4</button>
+      </div>
+    </section>
+
+    <section id="overlay" class="hidden">
+      <div id="overlay-content">
+        <h2 id="overlay-title"></h2>
+        <p id="overlay-text"></p>
+        <button id="restart">RESTART NIGHT</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/game.js"></script>
+</body>
+</html>
