@@ -1,7 +1,6 @@
 (() => {
   "use strict";
 
-  // Prototype tuning: one full night lasts 5 minutes.
   const NIGHT_LENGTH_MS = 5 * 60 * 1000;
   const HOUR_LENGTH_MS = NIGHT_LENGTH_MS / 6;
   const AI_TICK_MS = 4500;
@@ -24,12 +23,16 @@
   let leftAttackTimer = null;
   let rightAttackTimer = null;
 
+  // Camera hover must be left once before another toggle is allowed.
+  let cameraHoverArmed = true;
+
   const $ = (id) => document.getElementById(id);
 
   const leftDoorButton = $("left-door");
   const rightDoorButton = $("right-door");
-  const cameraToggle = $("camera-toggle");
   const cameraPanel = $("camera-panel");
+  const cameraHoverZone = $("camera-hover-zone");
+  const cameraIndicator = $("camera-indicator");
   const cameraName = $("camera-name");
   const cameraDescription = $("camera-description");
   const timeDisplay = $("time");
@@ -92,6 +95,15 @@
     rightThreat.classList.toggle("hidden", state.rightEnemy !== 3);
   }
 
+  function setCameraOpen(open) {
+    if (state.over || state.power <= 0) return;
+
+    state.cameraOpen = open;
+    cameraPanel.classList.toggle("hidden", !open);
+    cameraIndicator.classList.toggle("camera-open", open);
+    updateCamera();
+  }
+
   function clearAttackTimer(side) {
     if (side === "left") {
       if (leftAttackTimer !== null) {
@@ -109,8 +121,8 @@
 
   function endGame(title, text) {
     if (state.over) return;
-    state.over = true;
 
+    state.over = true;
     clearAttackTimer("left");
     clearAttackTimer("right");
 
@@ -121,6 +133,7 @@
 
   function attack(side) {
     clearAttackTimer(side);
+
     if (state.over) return;
 
     if (side === "left") {
@@ -155,8 +168,12 @@
 
       leftAttackTimer = setTimeout(() => {
         leftAttackTimer = null;
-        if (!state.over && state.leftEnemy === 3) attack("left");
+
+        if (!state.over && state.leftEnemy === 3) {
+          attack("left");
+        }
       }, ATTACK_DELAY_MS);
+
       return;
     }
 
@@ -164,7 +181,10 @@
 
     rightAttackTimer = setTimeout(() => {
       rightAttackTimer = null;
-      if (!state.over && state.rightEnemy === 3) attack("right");
+
+      if (!state.over && state.rightEnemy === 3) {
+        attack("right");
+      }
     }, ATTACK_DELAY_MS);
   }
 
@@ -183,12 +203,17 @@
   function moveRightEnemy() {
     if (state.over) return;
 
-    // Enemy B freezes if the player is watching its current camera.
     const location = enemyCameraLocation(state.rightEnemy, "right");
     const beingWatched =
-      state.cameraOpen && location !== null && state.camera === location;
+      state.cameraOpen &&
+      location !== null &&
+      state.camera === location;
 
-    if (!beingWatched && state.rightEnemy < 3 && Math.random() < 0.42) {
+    if (
+      !beingWatched &&
+      state.rightEnemy < 3 &&
+      Math.random() < 0.42
+    ) {
       state.rightEnemy += 1;
     }
 
@@ -199,29 +224,35 @@
 
   leftDoorButton.addEventListener("click", () => {
     if (state.over || state.power <= 0) return;
+
     state.leftDoor = !state.leftDoor;
     updateButtons();
   });
 
   rightDoorButton.addEventListener("click", () => {
     if (state.over || state.power <= 0) return;
+
     state.rightDoor = !state.rightDoor;
     updateButtons();
   });
 
-  cameraToggle.addEventListener("click", () => {
-    if (state.over || state.power <= 0) return;
+  // FNAF-style bottom-edge camera control.
+  // Enter once -> toggle. It cannot toggle again until the cursor leaves.
+  cameraHoverZone.addEventListener("mouseenter", () => {
+    if (!cameraHoverArmed || state.over || state.power <= 0) return;
 
-    state.cameraOpen = !state.cameraOpen;
-    cameraPanel.classList.toggle("hidden", !state.cameraOpen);
-    cameraToggle.textContent =
-      state.cameraOpen ? "CLOSE CAMERAS" : "OPEN CAMERAS";
+    cameraHoverArmed = false;
+    setCameraOpen(!state.cameraOpen);
+  });
 
-    updateCamera();
+  cameraHoverZone.addEventListener("mouseleave", () => {
+    cameraHoverArmed = true;
   });
 
   document.querySelectorAll("[data-camera]").forEach((button) => {
     button.addEventListener("click", () => {
+      if (state.over || state.power <= 0) return;
+
       state.camera = Number(button.dataset.camera);
       updateCamera();
     });
@@ -254,7 +285,6 @@
 
     timeDisplay.textContent = `${hour === 0 ? 12 : hour} AM`;
 
-    // Base drain + extra drain for each active system.
     const drainPerSecond = 0.075 * usage();
     state.power = Math.max(0, state.power - drainPerSecond * dt);
 
@@ -268,11 +298,10 @@
 
       updateButtons();
       cameraPanel.classList.add("hidden");
-      cameraToggle.textContent = "CAMERAS OFFLINE";
+      cameraIndicator.classList.remove("camera-open");
 
       leftDoorButton.disabled = true;
       rightDoorButton.disabled = true;
-      cameraToggle.disabled = true;
 
       officeMessage.textContent =
         "POWER FAILURE — all security systems offline.";
@@ -283,5 +312,6 @@
 
   updateButtons();
   updateCamera();
+  updateThreatLights();
   requestAnimationFrame(frame);
 })();
