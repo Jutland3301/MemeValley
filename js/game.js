@@ -5,6 +5,7 @@
   const NIGHT_LENGTH_MS = 5 * 60 * 1000;
   const HOUR_LENGTH_MS = NIGHT_LENGTH_MS / 6;
   const AI_TICK_MS = 4500;
+  const ATTACK_DELAY_MS = 3000;
 
   const state = {
     startedAt: performance.now(),
@@ -19,6 +20,9 @@
     leftEnemy: 0,
     rightEnemy: 0
   };
+
+  let leftAttackTimer = null;
+  let rightAttackTimer = null;
 
   const $ = (id) => document.getElementById(id);
 
@@ -88,9 +92,27 @@
     rightThreat.classList.toggle("hidden", state.rightEnemy !== 3);
   }
 
+  function clearAttackTimer(side) {
+    if (side === "left") {
+      if (leftAttackTimer !== null) {
+        clearTimeout(leftAttackTimer);
+        leftAttackTimer = null;
+      }
+      return;
+    }
+
+    if (rightAttackTimer !== null) {
+      clearTimeout(rightAttackTimer);
+      rightAttackTimer = null;
+    }
+  }
+
   function endGame(title, text) {
     if (state.over) return;
     state.over = true;
+
+    clearAttackTimer("left");
+    clearAttackTimer("right");
 
     $("overlay-title").textContent = title;
     $("overlay-text").textContent = text;
@@ -98,17 +120,24 @@
   }
 
   function attack(side) {
+    clearAttackTimer(side);
+    if (state.over) return;
+
     if (side === "left") {
+      if (state.leftEnemy !== 3) return;
+
       if (state.leftDoor) {
-        state.leftEnemy = 1;
+        state.leftEnemy = 0;
         officeMessage.textContent =
           "Something struck the LEFT door and retreated.";
       } else {
         endGame("CAUGHT", "Something entered through the left doorway.");
       }
     } else {
+      if (state.rightEnemy !== 3) return;
+
       if (state.rightDoor) {
-        state.rightEnemy = 1;
+        state.rightEnemy = 0;
         officeMessage.textContent =
           "Something struck the RIGHT door and retreated.";
       } else {
@@ -120,18 +149,34 @@
     updateCamera();
   }
 
+  function scheduleAttack(side) {
+    if (side === "left") {
+      if (leftAttackTimer !== null) return;
+
+      leftAttackTimer = setTimeout(() => {
+        leftAttackTimer = null;
+        if (!state.over && state.leftEnemy === 3) attack("left");
+      }, ATTACK_DELAY_MS);
+      return;
+    }
+
+    if (rightAttackTimer !== null) return;
+
+    rightAttackTimer = setTimeout(() => {
+      rightAttackTimer = null;
+      if (!state.over && state.rightEnemy === 3) attack("right");
+    }, ATTACK_DELAY_MS);
+  }
+
   function moveLeftEnemy() {
     if (state.over) return;
 
-    // Simple fixed route with probabilistic movement timing.
-    if (Math.random() < 0.48) {
-      state.leftEnemy = Math.min(3, state.leftEnemy + 1);
+    if (state.leftEnemy < 3 && Math.random() < 0.48) {
+      state.leftEnemy += 1;
     }
 
     if (state.leftEnemy === 3) {
-      setTimeout(() => {
-        if (!state.over && state.leftEnemy === 3) attack("left");
-      }, 3000);
+      scheduleAttack("left");
     }
   }
 
@@ -143,14 +188,12 @@
     const beingWatched =
       state.cameraOpen && location !== null && state.camera === location;
 
-    if (!beingWatched && Math.random() < 0.42) {
-      state.rightEnemy = Math.min(3, state.rightEnemy + 1);
+    if (!beingWatched && state.rightEnemy < 3 && Math.random() < 0.42) {
+      state.rightEnemy += 1;
     }
 
     if (state.rightEnemy === 3) {
-      setTimeout(() => {
-        if (!state.over && state.rightEnemy === 3) attack("right");
-      }, 3000);
+      scheduleAttack("right");
     }
   }
 

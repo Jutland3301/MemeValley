@@ -175,6 +175,62 @@ button:disabled { opacity: .4; cursor: default; }
 
 .hidden { display: none !important; }
 
+/* ==========================================================
+   CAMERA MONITOR HOVER CONTROL
+   ========================================================== */
+
+.camera-control-space {
+  min-height: 42px;
+}
+
+.camera-hover-zone {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+
+  width: 220px;
+  height: 46px;
+
+  transform: translateX(-50%);
+
+  z-index: 100;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+
+  cursor: pointer;
+}
+
+.camera-indicator {
+  margin-bottom: 5px;
+
+  font-size: 24px;
+  line-height: 1;
+
+  color: #55ff88;
+
+  opacity: 0.14;
+
+  text-shadow:
+    0 0 4px rgba(85, 255, 136, 0.35);
+
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+.camera-hover-zone:hover
+.camera-indicator {
+  opacity: 0.42;
+}
+
+.camera-indicator.camera-open {
+  transform: rotate(180deg);
+}
+
+
+
 @media (max-width: 700px) {
   #office { grid-template-columns: .7fr 2fr .7fr; }
   #controls button { padding: 10px 4px; font-size: 12px; }
